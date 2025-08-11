@@ -10,5 +10,11 @@ namespace BookLibraryAPi.Services
         Task<List<GenreResponseWithBooksDto>> GetAllGenres();
         Task<List<ReviewResponseDto>> GetAllReviewsAsync();
         Task<ReviewResponseDto?> AddReviewAsync(int bookId, ReviewRequestDto reviewDto);
+        Task<List<BookResponseDto>> GetBooksByGenreAsync(int genreId);
+        Task<FavoriteResponseDto?> AddBookToFavoritesAsync(FavoriteRequestDto request);
+        Task<List<FavoriteResponseDto>> GetUserFavoritesAsync(Guid userId);
+        Task<ReadingProgressResponseDto?> UpdateReadingProgressAsync(Guid userId, ReadingProgressRequestDto request);
+        Task<ReadingProgressResponseDto> GetReadingProgressAsync(Guid userId, int bookId);
+        Task<ReadingProgressResponseDto> GetLastReadingProgressAsync(Guid userId);
     }
 }

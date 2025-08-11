@@ -5,6 +5,7 @@ using BookLibraryAPi.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Net;
 
 namespace BookLibraryAPi.Controllers
 {
@@ -64,6 +65,50 @@ namespace BookLibraryAPi.Controllers
         {
             var result = await _bookService.GetAllGenres();
             return Ok(ApiResponse<List<GenreResponseWithBooksDto>>.SuccessResponse(result, ""));
+        }
+
+        [HttpPost("favorites")]
+        public async Task<IActionResult> AddBookToFavorites([FromBody] FavoriteRequestDto request)
+        {
+            var result = await _bookService.AddBookToFavoritesAsync(request);
+            if (result == null)
+                return BadRequest(ApiResponse<string>.ErrorResponse("Book already in favorites"));
+
+            return Ok(ApiResponse<FavoriteResponseDto>.SuccessResponse(result, "Book added to favorites"));
+        }
+
+        [HttpGet("user/{userId}/favorites")]
+        public async Task<IActionResult> GetUserFavorites(Guid userId)
+        {
+            var result = await _bookService.GetUserFavoritesAsync(userId);
+            return Ok(ApiResponse<List<FavoriteResponseDto>>.SuccessResponse(result, ""));
+        }
+
+        [HttpPut("user/{userId}/reading-progress")]
+        public async Task<IActionResult> UpdateReadingProgress(Guid userId, [FromBody] ReadingProgressRequestDto request)
+        {
+            var result = await _bookService.UpdateReadingProgressAsync(userId, request);
+            return Ok(ApiResponse<ReadingProgressResponseDto>.SuccessResponse(result, "Reading progress updated"));
+        }
+
+        [HttpGet("user/{userId}/reading-progress")]
+        public async Task<IActionResult> GetLastReadingProgressAsync(Guid userId)
+        {
+            var result = await _bookService.GetLastReadingProgressAsync(userId);
+            if (result == null)
+                return NotFound(ApiResponse<string>.ErrorResponse("No reading progress found for this book"));
+
+            return Ok(ApiResponse<ReadingProgressResponseDto>.SuccessResponse(result, ""));
+        }
+
+        [HttpGet("user/{userId}/reading-progress/{bookId}")]
+        public async Task<IActionResult> GetReadingProgress(Guid userId, int bookId)
+        {
+            var result = await _bookService.GetReadingProgressAsync(userId, bookId);
+            if (result == null)
+                return NotFound(ApiResponse<string>.ErrorResponse("No reading progress found for this book"));
+
+            return Ok(ApiResponse<ReadingProgressResponseDto>.SuccessResponse(result, ""));
         }
 
     }

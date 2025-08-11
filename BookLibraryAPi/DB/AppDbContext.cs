@@ -11,6 +11,8 @@ namespace BookLibraryAPi.DB
         public DbSet<Book> Books { get; set; }
         public DbSet<Review> Reviews { get; set; }
         public DbSet<Genre> Genres { get; set; }
+        public DbSet<Favorite> Favorites { get; set; }
+        public DbSet<ReadingProgress> ReadingProgress { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

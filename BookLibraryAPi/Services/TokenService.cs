@@ -21,7 +21,8 @@ namespace BookLibraryAPi.Services
                 var claims = new List<Claim>();
                 claims.Add(new Claim(ClaimTypes.Email, user.Email));
                 claims.Add(new Claim(ClaimTypes.Name, user.FullName));
-
+            claims.Add(new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()));
+    
             foreach (var role in roles)
                 {
                     claims.Add(new Claim(ClaimTypes.Role, role));
