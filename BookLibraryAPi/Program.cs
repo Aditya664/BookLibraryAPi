@@ -57,6 +57,7 @@ builder.Services.AddControllers()
         // Use default settings — remove reference metadata
         options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
         options.JsonSerializerOptions.WriteIndented = true; // Optional: for prettier JSON
+        options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
     });
 
 
@@ -102,7 +103,16 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
     };
 });
 
+
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var authDb = scope.ServiceProvider.GetRequiredService<AuthDbContext>();
+    authDb.Database.Migrate();
+    var appDb = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    appDb.Database.Migrate();
+}
 
 // Configure the HTTP request pipeline.
 /*if (app.Environment.IsDevelopment())

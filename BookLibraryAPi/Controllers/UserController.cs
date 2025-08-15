@@ -21,6 +21,7 @@ namespace BookLibraryAPi.Controllers
             this.tokenRepository = tokenRepository;
         }
 
+        [AllowAnonymous]
         [HttpPost]
         [Route("Register")]
         public async Task<IActionResult> Register([FromBody] RegisterRequestDto registerRequestDto)
@@ -47,6 +48,7 @@ namespace BookLibraryAPi.Controllers
         }
 
         [HttpPost]
+        [AllowAnonymous]
         [Route("Login")]
         public async Task<IActionResult> Login([FromBody] LoginRequestDto loginRequestDto)
         {

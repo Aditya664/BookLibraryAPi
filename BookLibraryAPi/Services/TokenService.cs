@@ -36,7 +36,7 @@ namespace BookLibraryAPi.Services
                     configuration["Jwt:Issuer"],
                     configuration["Jwt:Audience"],
                 claims,
-                expires: DateTime.Now.AddMinutes(15),
+                    expires: DateTime.UtcNow.AddDays(30),
                 signingCredentials: credentials
                 );
                 return new JwtSecurityTokenHandler().WriteToken(token);

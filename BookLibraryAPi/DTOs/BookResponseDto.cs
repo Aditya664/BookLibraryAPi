@@ -11,6 +11,7 @@ namespace BookLibraryAPi.DTOs
         public string Author { get; set; }
         public double Rating { get; set; }
         public string Description { get; set; }
+        public LanguageType Language { get; set; }
         public List<GenreResponseDto> Genres { get; set; }
         public List<ReviewResponseDto> Reviews { get; set; }
         public byte[]? PdfFile { get; set; }

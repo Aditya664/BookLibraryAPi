@@ -2,12 +2,18 @@
 
 namespace BookLibraryAPi.Model
 {
+    public enum LanguageType
+    {
+        Marathi = 1,
+        Hindi = 2,
+        English = 3
+    }
+
     public class Book
     {
         public int Id { get; set; }
 
-        [Required]
-        public string Image { get; set; }
+        public string? Image { get; set; }
 
         [Required]
         public string Title { get; set; }
@@ -17,6 +23,8 @@ namespace BookLibraryAPi.Model
         public double Rating { get; set; }
 
         public string Description { get; set; }
+
+        public LanguageType Language { get; set; } = LanguageType.English;
 
         public List<Genre> Genres { get; set; } = new ();
         public List<Review> Reviews { get; set; } = new();

@@ -35,6 +35,7 @@ namespace BookLibraryAPi.Services
                 Title = bookDto.Title,
                 Author = bookDto.Author,
                 Description = bookDto.Description,
+                Language = bookDto.Language,
                 Image = bookDto.Image,
                 Rating = (bookDto.Rating),
                 Genres = existingGenres,
@@ -53,6 +54,7 @@ namespace BookLibraryAPi.Services
                 Author = book.Author,
                 Rating = book.Rating,
                 Description = book.Description,
+                Language = bookDto.Language,
                 Image = book.Image,
                 Genres = book.Genres.Select(g => new GenreResponseDto
                 {
@@ -87,6 +89,7 @@ namespace BookLibraryAPi.Services
                 Title = book.Title,
                 Author = book.Author,
                 Rating = book.Rating,
+                Language = book.Language,
                 Description = book.Description,
                 Genres = book.Genres.Select(g => new GenreResponseDto
                 {
@@ -147,6 +150,7 @@ namespace BookLibraryAPi.Services
                 Id = b.Id,
                 Image = b.Image,
                 Title = b.Title,
+                Language = b.Language,
                 Author = b.Author,
                 Rating = b.Rating,
                 Description = b.Description,
@@ -350,6 +354,7 @@ namespace BookLibraryAPi.Services
                 Author = book.Author,
                 Rating = book.Rating,
                 Description = book.Description,
+                Language = book.Language,
                 Genres = book.Genres.Select(g => new GenreResponseDto
                 {
                     Id = g.Id,

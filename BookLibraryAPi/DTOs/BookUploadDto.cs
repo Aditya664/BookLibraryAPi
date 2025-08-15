@@ -1,4 +1,6 @@
-﻿namespace BookLibraryAPi.DTOs
+﻿using BookLibraryAPi.Model;
+
+namespace BookLibraryAPi.DTOs
 {
     public class BookUploadDto
     { 
@@ -6,6 +8,8 @@
         public string Author { get; set; }
         public double Rating { get; set; }
         public string Description { get; set; }
+        public LanguageType Language { get; set; }
+
         public string? Image { get; set; }
 
         public List<int> GenreIds { get; set; } = new();
