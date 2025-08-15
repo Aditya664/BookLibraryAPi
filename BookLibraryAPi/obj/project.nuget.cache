@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "BlMo7ojnYQiwG73Acz6LinF3SXxL2qvwyjqD/lURrvcZpYbYzXtLeHZA+n1IO2jIHs8qnwDd4i5dF1PKWoNmeQ==",
+  "dgSpecHash": "uLbzHmopt6n21YormJeeNjzLRLajfb7KnyY2cFxlV6E5ZDrds1ksKtip7jR9G6IVqiGIWp57194moY1StQexBA==",
   "success": true,
   "projectFilePath": "C:\\Users\\Aditya Deshmukh\\source\\repos\\BookLibraryAPi\\BookLibraryAPi\\BookLibraryAPi.csproj",
   "expectedPackageFiles": [
@@ -79,9 +79,9 @@
     "C:\\Users\\Aditya Deshmukh\\.nuget\\packages\\system.buffers\\4.6.0\\system.buffers.4.6.0.nupkg.sha512",
     "C:\\Users\\Aditya Deshmukh\\.nuget\\packages\\system.codedom\\4.4.0\\system.codedom.4.4.0.nupkg.sha512",
     "C:\\Users\\Aditya Deshmukh\\.nuget\\packages\\system.configuration.configurationmanager\\6.0.1\\system.configuration.configurationmanager.6.0.1.nupkg.sha512",
-    "C:\\Users\\Aditya Deshmukh\\.nuget\\packages\\system.diagnostics.diagnosticsource\\8.0.1\\system.diagnostics.diagnosticsource.8.0.1.nupkg.sha512",
+    "C:\\Users\\Aditya Deshmukh\\.nuget\\packages\\system.diagnostics.diagnosticsource\\6.0.1\\system.diagnostics.diagnosticsource.6.0.1.nupkg.sha512",
     "C:\\Users\\Aditya Deshmukh\\.nuget\\packages\\system.drawing.common\\6.0.0\\system.drawing.common.6.0.0.nupkg.sha512",
-    "C:\\Users\\Aditya Deshmukh\\.nuget\\packages\\system.formats.asn1\\8.0.1\\system.formats.asn1.8.0.1.nupkg.sha512",
+    "C:\\Users\\Aditya Deshmukh\\.nuget\\packages\\system.formats.asn1\\5.0.0\\system.formats.asn1.5.0.0.nupkg.sha512",
     "C:\\Users\\Aditya Deshmukh\\.nuget\\packages\\system.identitymodel.tokens.jwt\\6.35.0\\system.identitymodel.tokens.jwt.6.35.0.nupkg.sha512",
     "C:\\Users\\Aditya Deshmukh\\.nuget\\packages\\system.io.filesystem.accesscontrol\\5.0.0\\system.io.filesystem.accesscontrol.5.0.0.nupkg.sha512",
     "C:\\Users\\Aditya Deshmukh\\.nuget\\packages\\system.memory\\4.5.4\\system.memory.4.5.4.nupkg.sha512",
