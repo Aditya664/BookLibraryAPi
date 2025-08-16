@@ -10,7 +10,7 @@ namespace BookLibraryAPi.Services
     public class BookService : IBookService
     {
         private readonly AppDbContext _context;
-
+        private readonly Int32 MaxAllowedMinutes = 400;
         public BookService(AppDbContext context)
         {
             _context = context;
@@ -136,6 +136,54 @@ namespace BookLibraryAPi.Services
                 .ToListAsync();
 
             return books.Select(b => MapBookToDto(b)).ToList();
+        }
+
+        public async Task<GenreResponseDto> AddGenreAsync(GenreRequestDto genreDto)
+        {
+            var genre = new Genre
+            {
+                Name = genreDto.Name,
+                IconName = genreDto.IconName
+            };
+
+            _context.Genres.Add(genre);
+            await _context.SaveChangesAsync();
+
+            return new GenreResponseDto
+            {
+                Id = genre.Id,
+                Name = genre.Name,
+                IconName = genre.IconName
+            };
+        }
+
+        public async Task<GenreResponseDto?> UpdateGenreAsync(int id, GenreRequestDto genreDto)
+        {
+            var genre = await _context.Genres.FindAsync(id);
+            if (genre == null) return null;
+
+            genre.Name = genreDto.Name;
+            genre.IconName = genreDto.IconName;
+
+            _context.Genres.Update(genre);
+            await _context.SaveChangesAsync();
+
+            return new GenreResponseDto
+            {
+                Id = genre.Id,
+                Name = genre.Name,
+                IconName = genre.IconName
+            };
+        }
+
+        public async Task<bool> DeleteGenreAsync(int id)
+        {
+            var genre = await _context.Genres.FindAsync(id);
+            if (genre == null) return false;
+
+            _context.Genres.Remove(genre);
+            await _context.SaveChangesAsync();
+            return true;
         }
 
 
@@ -344,7 +392,118 @@ namespace BookLibraryAPi.Services
             };
     }
 
-    private BookResponseDto MapBookToDto(Book book)
+        public async Task<BookResponseDto?> UpdateBookAsync(int bookId, BookUploadDto bookDto, IFormFile? pdfFile)
+        {
+            var book = await _context.Books
+                .Include(b => b.Genres)
+                .Include(b => b.Reviews)
+                .FirstOrDefaultAsync(b => b.Id == bookId);
+
+            if (book == null) return null;
+
+            // Update basic fields
+            book.Title = bookDto.Title;
+            book.Author = bookDto.Author;
+            book.Description = bookDto.Description;
+            book.Language = bookDto.Language;
+            book.Image = bookDto.Image;
+            book.Rating = bookDto.Rating;
+
+            // Update genres
+            var existingGenres = await _context.Genres
+                .Where(g => bookDto.GenreIds.Contains(g.Id))
+                .ToListAsync();
+            book.Genres = existingGenres;
+
+            // Update PDF if provided
+            if (pdfFile != null && pdfFile.Length > 0)
+            {
+                using var ms = new MemoryStream();
+                await pdfFile.CopyToAsync(ms);
+                book.PdfFile = ms.ToArray();
+                book.PdfFileName = pdfFile.FileName;
+            }
+
+            await _context.SaveChangesAsync();
+
+            return MapBookToDto(book);
+        }
+
+        public async Task<bool> DeleteBookAsync(int bookId)
+        {
+            var book = await _context.Books
+                .Include(b => b.Reviews)
+                .FirstOrDefaultAsync(b => b.Id == bookId);
+
+            if (book == null) return false;
+
+            // Optionally remove related reviews
+            if (book.Reviews.Any())
+            {
+                _context.Reviews.RemoveRange(book.Reviews);
+            }
+
+            _context.Books.Remove(book);
+            await _context.SaveChangesAsync();
+
+            return true;
+        }
+
+
+        public async Task<ReadingProgress> GetProgressAsync(Guid userId, int bookId)
+        {
+            return await _context.ReadingProgress
+                .FirstOrDefaultAsync(r => r.UserId == userId && r.BookId == bookId);
+        }
+
+        public async Task<ReadingProgress> StartReadingAsync(Guid userId, int bookId)
+        {
+            var progress = await GetProgressAsync(userId, bookId);
+
+            if (progress == null)
+            {
+                progress = new ReadingProgress
+                {
+                    UserId = userId,
+                    BookId = bookId,
+                    CurrentPage = 0,
+                    TotalPages = 0,
+                    TotalReadingMinutes = 0
+                };
+                _context.ReadingProgress.Add(progress);
+            }
+
+            progress.LastUpdated = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+
+            return progress;
+        }
+
+        public async Task<bool> EndReadingAsync(Guid userId, int bookId, int sessionMinutes)
+        {
+            var progress = await GetProgressAsync(userId, bookId);
+
+            if (progress == null) return false;
+
+            progress.TotalReadingMinutes += sessionMinutes;
+            progress.LastUpdated = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+
+            // Return whether the user still has reading time left
+            return progress.TotalReadingMinutes < MaxAllowedMinutes;
+        }
+
+        public async Task<bool> HasReadingTimeLeftAsync(Guid userId)
+        {
+            var totalMinutes = await _context.ReadingProgress
+                .Where(r => r.UserId == userId)
+                .SumAsync(r => r.TotalReadingMinutes);
+
+            return totalMinutes < MaxAllowedMinutes;
+        }
+
+        private BookResponseDto MapBookToDto(Book book)
         {
             return new BookResponseDto
             {

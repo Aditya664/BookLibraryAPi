@@ -1,4 +1,5 @@
 ﻿using BookLibraryAPi.DTOs;
+using BookLibraryAPi.Model;
 
 namespace BookLibraryAPi.Services
 {
@@ -16,5 +17,14 @@ namespace BookLibraryAPi.Services
         Task<ReadingProgressResponseDto?> UpdateReadingProgressAsync(Guid userId, ReadingProgressRequestDto request);
         Task<ReadingProgressResponseDto> GetReadingProgressAsync(Guid userId, int bookId);
         Task<ReadingProgressResponseDto> GetLastReadingProgressAsync(Guid userId);
+        Task<bool> DeleteBookAsync(int bookId);
+        Task<BookResponseDto?> UpdateBookAsync(int bookId, BookUploadDto bookDto, IFormFile? pdfFile);
+        Task<GenreResponseDto> AddGenreAsync(GenreRequestDto genreDto);
+        Task<GenreResponseDto?> UpdateGenreAsync(int id, GenreRequestDto genreDto);
+        Task<bool> DeleteGenreAsync(int id);
+        Task<ReadingProgress> StartReadingAsync(Guid userId, int bookId);
+        Task<bool> EndReadingAsync(Guid userId, int bookId, int sessionMinutes);
+        Task<bool> HasReadingTimeLeftAsync(Guid userId);
+
     }
 }

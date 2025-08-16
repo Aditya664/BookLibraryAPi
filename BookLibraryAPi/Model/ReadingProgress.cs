@@ -11,5 +11,6 @@ namespace BookLibraryAPi.Model
         public int CurrentPage { get; set; }
         public int TotalPages { get; set; }
         public DateTime LastUpdated { get; set; } = DateTime.UtcNow;
+        public double TotalReadingMinutes { get; set; } = 0;
     }
 }

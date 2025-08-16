@@ -4,9 +4,11 @@ using BookLibraryAPi.Model;
 using BookLibraryAPi.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Net;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace BookLibraryAPi.Controllers
 {
@@ -113,5 +115,66 @@ namespace BookLibraryAPi.Controllers
             return Ok(ApiResponse<ReadingProgressResponseDto>.SuccessResponse(result, ""));
         }
 
+        [HttpPut("updateBook/{id}")]
+        public async Task<IActionResult> UpdateBook(int id, [FromForm] BookUploadDto bookDto, IFormFile? pdfFile)
+        {
+            var updatedBook = await _bookService.UpdateBookAsync(id, bookDto, pdfFile);
+            if (updatedBook == null) return NotFound();
+            return Ok(ApiResponse<BookResponseDto>.SuccessResponse(updatedBook, ""));
+        }
+
+        // Delete a book
+        [HttpDelete("deleteBook/{id}")]
+        public async Task<IActionResult> DeleteBook(int id)
+        {
+            var deleted = await _bookService.DeleteBookAsync(id);
+            if (!deleted) return NotFound();
+            return NoContent();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> AddGenre([FromBody] GenreRequestDto dto) =>
+       Ok(ApiResponse<GenreResponseDto>.SuccessResponse(await _bookService.AddGenreAsync(dto), ""));
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateGenre(int id, [FromBody] GenreRequestDto dto)
+        {
+            var updated = await _bookService.UpdateGenreAsync(id, dto);
+            return updated == null ? NotFound(ApiResponse<string>.ErrorResponse("No Genre Found!")) : Ok(ApiResponse<GenreResponseDto>.SuccessResponse(updated, ""));
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteGenre(int id)
+        {
+            var deleted = await _bookService.DeleteGenreAsync(id);
+            return deleted ? NoContent() : NotFound(ApiResponse<string>.ErrorResponse("No Genre Found!"));
+        }
+
+        [HttpPost("start")]
+        public async Task<IActionResult> StartReading(Guid userId, int bookId)
+        {
+            var progress = await _bookService.StartReadingAsync(userId, bookId);
+            return Ok(ApiResponse<ReadingProgress>.SuccessResponse(progress, "Reading Started"));
+        }
+
+        // On book close/destroy (pass session duration)
+        [HttpPost("end")]
+        public async Task<IActionResult> EndReading(Guid userId, int bookId, int sessionMinutes)
+        {
+            var hasTimeLeft = await _bookService.EndReadingAsync(userId, bookId, sessionMinutes);
+
+            if (!hasTimeLeft)
+                return Forbid("Your free 50 hours have expired. Please subscribe.");
+
+            return Ok(ApiResponse<bool>.SuccessResponse(hasTimeLeft, "Progress saved"));
+        }
+
+        // To check if user still has time left
+        [HttpGet("check")]
+        public async Task<IActionResult> CheckTimeLeft(Guid userId)
+        {
+            var hasTimeLeft = await _bookService.HasReadingTimeLeftAsync(userId);
+            return Ok(new { hasTimeLeft });
+        }
     }
 }

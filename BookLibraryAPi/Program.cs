@@ -106,14 +106,6 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
 
 var app = builder.Build();
 
-using (var scope = app.Services.CreateScope())
-{
-    var authDb = scope.ServiceProvider.GetRequiredService<AuthDbContext>();
-    authDb.Database.Migrate();
-    var appDb = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    appDb.Database.Migrate();
-}
-
 // Configure the HTTP request pipeline.
 /*if (app.Environment.IsDevelopment())
 {*/
