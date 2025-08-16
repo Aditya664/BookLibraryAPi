@@ -82,7 +82,8 @@ namespace BookLibraryAPi.Controllers
                     FullName = user.FullName,
                     UserName = user.UserName,
                     Email = user.Email,
-                    Roles = roles.ToList()
+                    Roles = roles.ToList(),
+                    HasSubscription = user.HasSubscription
                 });
             }
 

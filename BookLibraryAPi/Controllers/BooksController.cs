@@ -5,6 +5,7 @@ using BookLibraryAPi.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Net;
@@ -71,15 +72,26 @@ namespace BookLibraryAPi.Controllers
             return Ok(ApiResponse<List<GenreResponseWithBooksDto>>.SuccessResponse(result, ""));
         }
 
-        [HttpPost("favorites")]
+        [HttpPost("toggleFavorites")]
         public async Task<IActionResult> AddBookToFavorites([FromBody] FavoriteRequestDto request)
         {
-            var result = await _bookService.AddBookToFavoritesAsync(request);
+            var result = await _bookService.ToggleFavoriteAsync(request);
             if (result == null)
-                return BadRequest(ApiResponse<string>.ErrorResponse("Book already in favorites"));
+                return Ok(ApiResponse<FavoriteResponseDto>.SuccessResponse(result, "Book already in favorites"));
 
             return Ok(ApiResponse<FavoriteResponseDto>.SuccessResponse(result, "Book added to favorites"));
         }
+
+        [HttpPost("checkFavorites")]
+        public async Task<IActionResult> GetBookFavorite([FromBody] FavoriteRequestDto request)
+        {
+            var result = await _bookService.CheckFavoriteOrNot(request);
+            if (result == null)
+                return BadRequest(ApiResponse<string>.ErrorResponse("Book not in favorites"));
+
+            return Ok(ApiResponse<bool?>.SuccessResponse(result, "Book is favorite"));
+        }
+
 
         [HttpGet("user/{userId}/favorites")]
         public async Task<IActionResult> GetUserFavorites(Guid userId)
@@ -87,6 +99,8 @@ namespace BookLibraryAPi.Controllers
             var result = await _bookService.GetUserFavoritesAsync(userId);
             return Ok(ApiResponse<List<FavoriteResponseDto>>.SuccessResponse(result, ""));
         }
+
+
 
         [HttpPut("user/{userId}/reading-progress")]
         public async Task<IActionResult> UpdateReadingProgress(Guid userId, [FromBody] ReadingProgressRequestDto request)
@@ -167,6 +181,13 @@ namespace BookLibraryAPi.Controllers
                 return Forbid("Your free 50 hours have expired. Please subscribe.");
 
             return Ok(ApiResponse<bool>.SuccessResponse(hasTimeLeft, "Progress saved"));
+        }
+
+        [HttpGet("user/{userId}/reading-history")]
+        public async Task<IActionResult> GetReadingHistory(Guid userId)
+        {
+            var history = await _bookService.GetReadingHistoryAsync(userId);
+            return Ok(ApiResponse<List<ReadingProgressResponseDto>>.SuccessResponse(history, ""));
         }
 
         // To check if user still has time left

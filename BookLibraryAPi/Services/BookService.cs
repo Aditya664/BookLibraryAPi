@@ -1,6 +1,8 @@
 ﻿using BookLibraryAPi.DB;
 using BookLibraryAPi.DTOs;
+using BookLibraryAPi.Entities;
 using BookLibraryAPi.Model;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System.Net;
 using static System.Reflection.Metadata.BlobBuilder;
@@ -11,9 +13,12 @@ namespace BookLibraryAPi.Services
     {
         private readonly AppDbContext _context;
         private readonly Int32 MaxAllowedMinutes = 400;
-        public BookService(AppDbContext context)
+        private readonly UserManager<ApplicationUser> _userManager;
+
+        public BookService(AppDbContext context, UserManager<ApplicationUser> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
 
         public async Task<BookResponseDto> AddBookWithPdfAsync(BookUploadDto bookDto, IFormFile? pdfFile)
@@ -66,9 +71,9 @@ namespace BookLibraryAPi.Services
                     Id = g.Id,
                     BookId = g.BookId,
                     Comment = g.Comment,
-                    User    = g.User,
+                    User = g.User,
                 }).ToList(),
-                CreatedAt= book.CreatedAt,
+                CreatedAt = book.CreatedAt,
                 PdfFile = book.PdfFile,
                 PdfFileName = book.PdfFileName
             };
@@ -110,7 +115,7 @@ namespace BookLibraryAPi.Services
         public async Task<List<GenreResponseWithBooksDto>> GetAllGenres()
         {
             var genres = await _context.Genres
-                .Include(g => g.Books) 
+                .Include(g => g.Books)
                 .ToListAsync();
 
             return genres.Select(g => new GenreResponseWithBooksDto
@@ -190,7 +195,7 @@ namespace BookLibraryAPi.Services
         public async Task<List<BookResponseDto>> GetAllBooksAsync()
         {
             var books = await _context.Books
-                .Include(b => b.Genres) 
+                .Include(b => b.Genres)
                 .Include(b => b.Reviews)
                 .ToListAsync();
             return books.Select(b => new BookResponseDto
@@ -204,7 +209,7 @@ namespace BookLibraryAPi.Services
                 Description = b.Description,
                 Genres = b.Genres.Select(g => new GenreResponseDto
                 {
-                    Id=g.Id,
+                    Id = g.Id,
                     Name = g.Name,
                 }).ToList(),
                 Reviews = b.Reviews.Select(r => new ReviewResponseDto
@@ -255,38 +260,29 @@ namespace BookLibraryAPi.Services
             };
         }
 
-        public async Task<FavoriteResponseDto?> AddBookToFavoritesAsync(FavoriteRequestDto request)
+        public async Task<bool?> CheckFavoriteOrNot(FavoriteRequestDto request)
         {
-            var exists = await _context.Favorites
-                .AnyAsync(f => f.UserId == request.UserId && f.BookId == request.BookId);
+            // Check if favorite already exists
+            var favorite = await _context.Favorites
+                .FirstOrDefaultAsync(f => f.UserId == request.UserId && f.BookId == request.BookId);
 
-            if (exists) return null;
-
-            var favorite = new Favorite
+            if (favorite != null)
             {
-                UserId = request.UserId,
-                BookId = request.BookId
-            };
-
-            _context.Favorites.Add(favorite);
-            await _context.SaveChangesAsync();
-
-            var book = await _context.Books
-                .Include(b => b.Genres)
-                .Include(b => b.Reviews)
-                .FirstOrDefaultAsync(b => b.Id == request.BookId);
-
-            return new FavoriteResponseDto
+               
+                return true;
+            }
+            else
             {
-                Id = favorite.Id,
-                UserId = request.UserId,
-                Book = MapBookToDto(book)
-            };
+                return false;
+
+            }
+
         }
 
         public async Task<List<FavoriteResponseDto>> GetUserFavoritesAsync(Guid userId)
         {
             var favorites = await _context.Favorites
+                .Where(f => f.UserId == userId) // ✅ filter by user
                 .Include(f => f.Book)
                     .ThenInclude(b => b.Genres)
                 .Include(f => f.Book.Reviews)
@@ -298,6 +294,67 @@ namespace BookLibraryAPi.Services
                 UserId = userId,
                 Book = MapBookToDto(f.Book)
             }).ToList();
+        }
+
+
+        public async Task<FavoriteResponseDto?> ToggleFavoriteAsync(FavoriteRequestDto request)
+        {
+            var favorite = await _context.Favorites
+                .AsTracking()
+                .SingleOrDefaultAsync(f => f.UserId == request.UserId && f.BookId == request.BookId);
+
+            if (favorite != null)
+            {
+                _context.Favorites.Remove(favorite);
+                await _context.SaveChangesAsync();
+                return null;
+            }
+
+            var newFavorite = new Favorite
+            {
+                UserId = request.UserId,
+                BookId = request.BookId
+            };
+
+            _context.Favorites.Add(newFavorite);
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateException)
+            {
+                // Unique constraint will prevent duplicate inserts
+                return await GetFavoriteAsync(request.UserId, request.BookId);
+            }
+
+            var book = await _context.Books
+                .Include(b => b.Genres)
+                .Include(b => b.Reviews)
+                .FirstOrDefaultAsync(b => b.Id == request.BookId);
+
+            return new FavoriteResponseDto
+            {
+                Id = newFavorite.Id,
+                UserId = request.UserId,
+                Book = MapBookToDto(book)
+            };
+        }
+
+        private async Task<FavoriteResponseDto?> GetFavoriteAsync(Guid userId, int bookId)
+        {
+            var favorite = await _context.Favorites
+                .Include(f => f.Book)
+                .ThenInclude(b => b.Genres)
+                .Include(f => f.Book.Reviews)
+                .SingleOrDefaultAsync(f => f.UserId == userId && f.BookId == bookId);
+
+            return favorite == null ? null : new FavoriteResponseDto
+            {
+                Id = favorite.Id,
+                UserId = userId,
+                Book = MapBookToDto(favorite.Book)
+            };
         }
 
         public async Task<ReadingProgressResponseDto> UpdateReadingProgressAsync(Guid userId, ReadingProgressRequestDto request)
@@ -391,6 +448,42 @@ namespace BookLibraryAPi.Services
                 .FirstOrDefaultAsync(b => b.Id == progress.BookId)),
             };
     }
+
+        public async Task<List<ReadingProgressResponseDto>> GetReadingHistoryAsync(Guid userId)
+        {
+            var progresses = await _context.ReadingProgress
+                .Where(r => r.UserId == userId)
+                .ToListAsync();
+
+            if (progresses == null || !progresses.Any())
+                return new List<ReadingProgressResponseDto>();
+
+            var result = new List<ReadingProgressResponseDto>();
+
+            foreach (var progress in progresses)
+            {
+                var book = await _context.Books
+                    .Include(b => b.Reviews)
+                    .Include(b => b.Genres)
+                    .FirstOrDefaultAsync(b => b.Id == progress.BookId);
+
+                result.Add(new ReadingProgressResponseDto
+                {
+                    BookId = progress.BookId,
+                    UserId = progress.UserId,
+                    CurrentPage = progress.CurrentPage,
+                    TotalPages = progress.TotalPages,
+                    Percentage = progress.TotalPages > 0
+                        ? Math.Round((double)progress.CurrentPage / progress.TotalPages * 100, 2)
+                        : 0,
+                    LastUpdated = progress.LastUpdated,
+                    Book = MapBookToDto(book)
+                });
+            }
+
+            return result;
+        }
+
 
         public async Task<BookResponseDto?> UpdateBookAsync(int bookId, BookUploadDto bookDto, IFormFile? pdfFile)
         {
@@ -487,15 +580,16 @@ namespace BookLibraryAPi.Services
 
             progress.TotalReadingMinutes += sessionMinutes;
             progress.LastUpdated = DateTime.UtcNow;
-
             await _context.SaveChangesAsync();
-
-            // Return whether the user still has reading time left
+            var user = await _userManager.FindByIdAsync(userId.ToString());
+            if (user.HasSubscription) return true;
             return progress.TotalReadingMinutes < MaxAllowedMinutes;
         }
 
         public async Task<bool> HasReadingTimeLeftAsync(Guid userId)
         {
+            var user = await _userManager.FindByIdAsync(userId.ToString());
+            if (user.HasSubscription) return true;
             var totalMinutes = await _context.ReadingProgress
                 .Where(r => r.UserId == userId)
                 .SumAsync(r => r.TotalReadingMinutes);

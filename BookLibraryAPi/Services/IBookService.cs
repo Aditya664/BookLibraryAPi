@@ -12,7 +12,7 @@ namespace BookLibraryAPi.Services
         Task<List<ReviewResponseDto>> GetAllReviewsAsync();
         Task<ReviewResponseDto?> AddReviewAsync(int bookId, ReviewRequestDto reviewDto);
         Task<List<BookResponseDto>> GetBooksByGenreAsync(int genreId);
-        Task<FavoriteResponseDto?> AddBookToFavoritesAsync(FavoriteRequestDto request);
+        Task<FavoriteResponseDto?> ToggleFavoriteAsync(FavoriteRequestDto request);
         Task<List<FavoriteResponseDto>> GetUserFavoritesAsync(Guid userId);
         Task<ReadingProgressResponseDto?> UpdateReadingProgressAsync(Guid userId, ReadingProgressRequestDto request);
         Task<ReadingProgressResponseDto> GetReadingProgressAsync(Guid userId, int bookId);
@@ -25,6 +25,8 @@ namespace BookLibraryAPi.Services
         Task<ReadingProgress> StartReadingAsync(Guid userId, int bookId);
         Task<bool> EndReadingAsync(Guid userId, int bookId, int sessionMinutes);
         Task<bool> HasReadingTimeLeftAsync(Guid userId);
+        Task<List<ReadingProgressResponseDto>> GetReadingHistoryAsync(Guid userId);
+        Task<bool?> CheckFavoriteOrNot(FavoriteRequestDto request);
 
     }
 }

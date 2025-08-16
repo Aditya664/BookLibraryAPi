@@ -21,6 +21,10 @@ namespace BookLibraryAPi.DB
             modelBuilder.Entity<Book>()
                 .HasMany(b => b.Genres)
                 .WithMany(g => g.Books);
+            modelBuilder.Entity<Favorite>()
+                .HasIndex(f => new { f.UserId, f.BookId })
+                .IsUnique();
+
 
             modelBuilder.Entity<Genre>().HasData(
              new Genre { Id = 1, Name = "Fantasy", IconName = "sparkles-outline" },
