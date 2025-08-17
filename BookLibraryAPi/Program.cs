@@ -63,6 +63,7 @@ builder.Services.AddControllers()
 
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IBookService, BookService>();
+builder.Services.AddScoped<IDashboardService, DashboardService>();
 
 builder.Services.AddIdentityCore<ApplicationUser>().AddRoles<IdentityRole>().AddTokenProvider<DataProtectorTokenProvider<ApplicationUser>>("Ebook")
     .AddEntityFrameworkStores<AuthDbContext>()

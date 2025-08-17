@@ -146,18 +146,18 @@ namespace BookLibraryAPi.Controllers
             return NoContent();
         }
 
-        [HttpPost]
+        [HttpPost("addGenre")]
         public async Task<IActionResult> AddGenre([FromBody] GenreRequestDto dto) =>
        Ok(ApiResponse<GenreResponseDto>.SuccessResponse(await _bookService.AddGenreAsync(dto), ""));
 
-        [HttpPut("{id}")]
+        [HttpPut("updateGenre/{id}")]
         public async Task<IActionResult> UpdateGenre(int id, [FromBody] GenreRequestDto dto)
         {
             var updated = await _bookService.UpdateGenreAsync(id, dto);
             return updated == null ? NotFound(ApiResponse<string>.ErrorResponse("No Genre Found!")) : Ok(ApiResponse<GenreResponseDto>.SuccessResponse(updated, ""));
         }
 
-        [HttpDelete("{id}")]
+        [HttpDelete("deleteGenre/{id}")]
         public async Task<IActionResult> DeleteGenre(int id)
         {
             var deleted = await _bookService.DeleteGenreAsync(id);

@@ -194,34 +194,34 @@ namespace BookLibraryAPi.Services
 
         public async Task<List<BookResponseDto>> GetAllBooksAsync()
         {
-            var books = await _context.Books
-                .Include(b => b.Genres)
-                .Include(b => b.Reviews)
+            return await _context.Books
+                .Select(b => new BookResponseDto
+                {
+                    Id = b.Id,
+                    Image = b.Image,
+                    Title = b.Title,
+                    Language = b.Language,
+                    Author = b.Author,
+                    Rating = b.Rating,
+                    Description = b.Description,
+                    Genres = b.Genres
+                        .Select(g => new GenreResponseDto
+                        {
+                            Id = g.Id,
+                            Name = g.Name
+                        }).ToList(),
+                    Reviews = b.Reviews
+                        .Select(r => new ReviewResponseDto
+                        {
+                            User = r.User,
+                            Comment = r.Comment
+                        }).ToList(),
+                    CreatedAt = b.CreatedAt,
+                    PdfFileName = b.PdfFileName
+                })
                 .ToListAsync();
-            return books.Select(b => new BookResponseDto
-            {
-                Id = b.Id,
-                Image = b.Image,
-                Title = b.Title,
-                Language = b.Language,
-                Author = b.Author,
-                Rating = b.Rating,
-                Description = b.Description,
-                Genres = b.Genres.Select(g => new GenreResponseDto
-                {
-                    Id = g.Id,
-                    Name = g.Name,
-                }).ToList(),
-                Reviews = b.Reviews.Select(r => new ReviewResponseDto
-                {
-                    User = r.User,
-                    Comment = r.Comment
-                }).ToList(),
-                CreatedAt = b.CreatedAt,
-                PdfFile = b.PdfFile,
-                PdfFileName = b.PdfFileName
-            }).ToList();
         }
+
 
         public async Task<List<ReviewResponseDto>> GetAllReviewsAsync()
         {
